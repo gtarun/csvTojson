@@ -17,28 +17,6 @@ var csv = require('csv');
 var fs = require('fs');
 var crypto = require("crypto");
 
-var endpoints = require('./endpoints')
-  , host = endpoints.resolveEndpoints({database: 'mongodb'});
-
-module.exports = function(db){
-  db.connect('mongodb://admin:lovers&madmen@' + host + '/firefly');
-}
-
-
-module.exports = function(mongoose) {
-  var Schema = mongoose.Schema;
-
- var representives = new Schema({
-      Email             : {type : String, required : true, index: { unique: true }} 
-    , salt              : {type: Number, set: generateSalt}
-    , hashed_password   : {type: String, required: true}
-    , FullName              : {type: String, required: true}
-    , company_head      : {type: Boolean, default: false}
-    , company_id        : {type: Schema.Types.ObjectId, required: true, ref: 'Company'} //{type: Schema.ObjectId, required: true}
-    , confirmed         : {type: Boolean, default: true}
-    , created_at        : {type : Date, default: Date.now}
-  });
-
 // pattren for validations 
 var passwordPattern = /^[a-z0-9]+$/i;
 var companyNamePattern = /^[a-z0-9]+$/i;
@@ -53,7 +31,7 @@ allArgs.csvFileName = process.argv[4];
 var allrows=[];
 
 //check if all arguments are available and having no errors
-if (validateArguments(allArgs)) {
+if (validateArguments(process.argv)) {
     var data = ConvertFileToArray(allArgs.csvFileName);
     console.error(data);
 }
@@ -65,9 +43,9 @@ if (validateArguments(allArgs)) {
 */
 
 //Argument validation function
-function validateArguments() {
+function validateArguments(args) {
   var errors;
-  console.log(allArgs.length);
+  console.log(args.length);
   if (args.length == 5) {
     
     if (passwordPattern.test(allArgs.userPassword)) {
@@ -99,7 +77,6 @@ function ConvertFileToArray(csvFile) {
     .on('record', function(row,index)
       {
         var newRow ={ FullName : row[1], Email : row[0]} ;
-        //console.log(newRow);
         try {
           allrows.push(newRow);
         }
@@ -116,65 +93,18 @@ function ConvertFileToArray(csvFile) {
         console.log(error.message);
       })
     .on('end',function(data){
-      //console.log("data is array is "+allrow.length);
       //saving all data after async call
         saveData(allrows);
       
       });
-   // return allrow;
-  
 }
 
-// function to save data into database ** Not sure if it works , So created multiple version will do after discussion
+// function to save data into database 
 
 function saveData(allrows)
 {
   console.log("from callback "+JSON.stringify( allrows));
-  db.representives.save(allrows, function(err, records) {
-    if (err) throw err;
-    console.log("record added");
-  });
-  
-  //we can uncomment them when we want to put code in Firefly
-  
-  /*Company.findOne({name: company}, function(err, company){
-            attrs.company_id = company._id.toString();
-            var rep = new Rep(allrows);
-            rep.set('password.raw', req.body.password); // hash password as a virtual attribute
-            rep.save(function(err){
-              if (err){
-                if (err.code === 11000){ // if mongodb returns a duplicate error
-                  req.flash("error", "The email %s is already in use.", attrs.email);
-                }
-                res.render('reps/new');
-              } else {
-                req.flash("info", "You can now login.", attrs.email);
-              }
-            }
-  });
-  
-  
-    var attrs = allrow
-    , company = req.subdomain;
-    attrs.salt = '';
-    Company.findOne({name: allArgs.companyName}, function(err, allArgs.companyName){
-      attrs.company_id = company._id.toString();
-      var rep = new Rep(attrs);
-      rep.set('password.raw', allArgs.userPassword); // hash password as a virtual attribute
-      rep.save(function(err){
-        if (err){
-          if (err.code === 11000){ // if mongodb returns a duplicate error
-            //req.flash("error", "The email %s is already in use.", attrs.email);
-            console.log("The email %s is already in use.", attrs.email);
-          }
-        } else {
-          console.log("Saved all!!");
-           
-    
-        }
-      }); // end rep.save
-    }); // end Company.findOne
-    */
+  //Need to write the mongodb conncection and create a collection with above data
   
 }
 
