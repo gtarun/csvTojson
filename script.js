@@ -15,71 +15,79 @@
 
 var csv = require('csv');
 var fs = require('fs');
-var Schema = mongoose.Schema
-  , ObjectId = Schema.ObjectID;
+var crypto = require("crypto");
 
+var endpoints = require('./endpoints')
+  , host = endpoints.resolveEndpoints({database: 'mongodb'});
+
+module.exports = function(db){
+  db.connect('mongodb://admin:lovers&madmen@' + host + '/firefly');
+}
+
+
+module.exports = function(mongoose) {
+  var Schema = mongoose.Schema;
 
  var representives = new Schema({
-      email             : {type : String, required : true, index: { unique: true }} 
+      Email             : {type : String, required : true, index: { unique: true }} 
     , salt              : {type: Number, set: generateSalt}
     , hashed_password   : {type: String, required: true}
-    , name              : {type: String, required: true}
+    , FullName              : {type: String, required: true}
     , company_head      : {type: Boolean, default: false}
     , company_id        : {type: Schema.Types.ObjectId, required: true, ref: 'Company'} //{type: Schema.ObjectId, required: true}
     , confirmed         : {type: Boolean, default: true}
     , created_at        : {type : Date, default: Date.now}
   });
 
-
+// pattren for validations 
 var passwordPattern = /^[a-z0-9]+$/i;
 var companyNamePattern = /^[a-z0-9]+$/i;
 
+//Command Line argument into an object
 var allArgs = {};
 allArgs.companyName =process.argv[3] ;
 allArgs.userPassword = process.argv[2] ;
 allArgs.csvFileName = process.argv[4];
+
+//To collect all rows of the csv
 var allrows=[];
 
-//console.log(allArgs.companyName);
 //check if all arguments are available and having no errors
-if (validateArguments(process.argv)) {
+if (validateArguments(allArgs)) {
     var data = ConvertFileToArray(allArgs.csvFileName);
-    
+    console.error(data);
 }
+
 /*
+ *
  *function defined for processign the csv
+ *
 */
+
 //Argument validation function
-function validateArguments(args) {
+function validateArguments() {
   var errors;
+  console.log(allArgs.length);
   if (args.length == 5) {
     
-    if (passwordPattern.test(args[2])  ) {
+    if (passwordPattern.test(allArgs.userPassword)) {
       errors+= "\n *Password is not Good.";
       
     }
-    else if (args) {
-      //code
-    }else{
+    else if (companyNamePattern.test(allArgs.companyName)) {
+      errors+= "\n *Company Name is not Good.";
       
+    }else{
+      // Need to write more validation code will do it later on 
     }
   }
   else{
     errors+= "\n *Invalid Arguments Supplied.";
-    console.log("Error in arguments!");
   }
   return errors
 }
 
-function ConvertStringToArray(csvData) {
-  //code
-  csv()
-      .from.string(csvData )
-      .to.array(function(data){
-        console.log(data)
-      });
-}
-
+// function to parse csv and put in global array
 function ConvertFileToArray(csvFile) {
   
   csv()
@@ -117,10 +125,12 @@ function ConvertFileToArray(csvFile) {
   
 }
 
+// function to save data into database ** Not sure if it works , So created multiple version will do after discussion
+
 function saveData(allrows)
 {
   console.log("from callback "+JSON.stringify( allrows));
-  representives.save(allrows, function(err, records) {
+  db.representives.save(allrows, function(err, records) {
     if (err) throw err;
     console.log("record added");
   });
