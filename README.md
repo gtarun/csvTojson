@@ -17,3 +17,8 @@ Script use to convert the csv file name passed in the terminal
 * npm used
 * https://github.com/wdavidw/node-csv.git
 
+
+*****Script.js contains runable code (Clean code)
+> node script.js password nameOfTheCompany filename.csv
+
+******Script1.js contains code which I wrote for saving data to database. Need to complete it 
