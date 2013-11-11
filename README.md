@@ -22,3 +22,8 @@ Script use to convert the csv file name passed in the terminal
 > node script.js password nameOfTheCompany filename.csv
 
 ******Script1.js contains code which I wrote for saving data to database. Need to complete it 
+use this in console 
+npm install csv
+
+
+npm install csv
